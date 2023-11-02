@@ -4,8 +4,10 @@ import io.jmagero.securecapita.domain.User;
 import io.jmagero.securecapita.exception.ApiException;
 import io.jmagero.securecapita.repository.RoleRepository;
 import io.jmagero.securecapita.repository.UserRepository;
+import io.jmagero.securecapita.rowMapper.UserRowMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -16,10 +18,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static io.jmagero.securecapita.enumeration.RoleType.ROLE_USER;
 import static io.jmagero.securecapita.enumeration.VerificationType.ACCOUNT;
@@ -90,6 +89,29 @@ public class UserRepositoryImpl implements UserRepository {
         return null;
     }
 
+    @Override
+    public User getUserByEmail(String email) {
+//        try{
+//            User user = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
+//            Optional<User> user1 = Optional.ofNullable(user);
+//            return user1;
+//        } catch (EmptyResultDataAccessException exception){
+//            throw new ApiException("No User found by email: " + email);
+//        } catch (Exception exception){
+//            log.error(exception.getMessage());
+//            throw new ApiException("An error occurred. Please try again");
+//        }
+        try{
+            User user = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
+            return user;
+        } catch (EmptyResultDataAccessException exception){
+            throw new ApiException("No User found by email: " + email);
+        } catch (Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error occurred. Please try again");
+        }
+    }
+
     private Integer getEmailCount(String email) {
         return jdbc.queryForObject(COUNT_USER_EMAIL_QUERY, Map.of("email",email),Integer.class);
     }
@@ -105,4 +127,5 @@ public class UserRepositoryImpl implements UserRepository {
     private String getVerificationUrl(String key, String type) {
         return ServletUriComponentsBuilder.fromCurrentContextPath().path("/users/verify" +type +"/" + key).toString();
     }
+
 }
