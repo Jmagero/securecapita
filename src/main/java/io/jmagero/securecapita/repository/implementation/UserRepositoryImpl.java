@@ -23,7 +23,8 @@ import java.util.*;
 import static io.jmagero.securecapita.enumeration.RoleType.ROLE_USER;
 import static io.jmagero.securecapita.enumeration.VerificationType.ACCOUNT;
 import static io.jmagero.securecapita.query.UserQuery.*;
-import static java.util.Objects.requireNonNull;
+import static io.jmagero.securecapita.query.VerificationQuery.DELETE_VERIFICATION_CODE_BY_USER_ID;
+import static io.jmagero.securecapita.query.VerificationQuery.INSERT_VERIFICATION_CODE_QUERY;
 
 @Repository
 @RequiredArgsConstructor
@@ -110,6 +111,20 @@ public class UserRepositoryImpl implements UserRepository {
             log.error(exception.getMessage());
             throw new ApiException("An error occurred. Please try again");
         }
+    }
+
+    @Transactional
+    @Override
+    public void sendVerificationCode(Long userId, String verificationCode, String expirationDate) {
+        try{
+            jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID, Map.of("id",userId));
+            jdbc.update(INSERT_VERIFICATION_CODE_QUERY, Map.of("userId", userId, "code", verificationCode, "expirationDate", expirationDate));
+        }
+        catch (Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error occurred. Please try again");
+        }
+
     }
 
     private Integer getEmailCount(String email) {

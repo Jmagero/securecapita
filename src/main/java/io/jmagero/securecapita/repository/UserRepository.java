@@ -14,6 +14,8 @@ public interface UserRepository <T extends User> {
 
     User getUserByEmail(String email);
 
+    void sendVerificationCode(Long id, String verificationCode, String expirationDate);
+
 //    More complex Operations
 
 }
