@@ -59,7 +59,7 @@ public class TokenProvider {
         } catch (Exception exception) {
             throw exception;
         }
-        return token;
+        return "";
     }
 
     public List<GrantedAuthority> getAuthorities(String token){

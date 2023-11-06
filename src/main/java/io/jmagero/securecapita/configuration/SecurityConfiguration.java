@@ -1,5 +1,6 @@
 package io.jmagero.securecapita.configuration;
 
+import io.jmagero.securecapita.filter.CustomAuthorizationFilter;
 import io.jmagero.securecapita.handler.CustomAuthenticationEntryPoint;
 import io.jmagero.securecapita.handler.CustomerAccessDeniedHandler;
 import io.jmagero.securecapita.service.CustomUserDetailsService;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +29,7 @@ public class SecurityConfiguration {
     private final CustomerAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     public  final CustomUserDetailsService userDetailsService;
+    private final CustomAuthorizationFilter customAuthorizationFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http.csrf().disable();
@@ -37,6 +40,7 @@ public class SecurityConfiguration {
        http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/customer/delete/**").hasAnyAuthority("DELETE:CUSTOMER");
        http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(customAuthenticationEntryPoint);
        http.authorizeHttpRequests().anyRequest().authenticated();
+       http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
        return http.build();
     }
 
