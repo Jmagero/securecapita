@@ -18,13 +18,17 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import static io.jmagero.securecapita.enumeration.RoleType.ROLE_USER;
 import static io.jmagero.securecapita.enumeration.VerificationType.ACCOUNT;
 import static io.jmagero.securecapita.query.UserQuery.*;
 import static io.jmagero.securecapita.query.VerificationQuery.DELETE_VERIFICATION_CODE_BY_USER_ID;
 import static io.jmagero.securecapita.query.VerificationQuery.INSERT_VERIFICATION_CODE_QUERY;
+
 
 @Repository
 @RequiredArgsConstructor
@@ -67,9 +71,6 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
-
-
-
     @Override
     public Collection list(int page, int pageSize) {
         return null;
@@ -92,16 +93,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User getUserByEmail(String email) {
-//        try{
-//            User user = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
-//            Optional<User> user1 = Optional.ofNullable(user);
-//            return user1;
-//        } catch (EmptyResultDataAccessException exception){
-//            throw new ApiException("No User found by email: " + email);
-//        } catch (Exception exception){
-//            log.error(exception.getMessage());
-//            throw new ApiException("An error occurred. Please try again");
-//        }
         try{
             User user = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
             return user;
@@ -119,12 +110,42 @@ public class UserRepositoryImpl implements UserRepository {
         try{
             jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID, Map.of("id",userId));
             jdbc.update(INSERT_VERIFICATION_CODE_QUERY, Map.of("userId", userId, "code", verificationCode, "expirationDate", expirationDate));
+            log.info("Verification Code: {}", verificationCode);
         }
         catch (Exception exception){
             log.error(exception.getMessage());
             throw new ApiException("An error occurred. Please try again");
         }
+    }
 
+    @Override
+    public User verifyCode(String email, String code) {
+        if(isVerificationCodeExpired(code)) throw new ApiException("This code has expired. Please login again.");
+        try {
+            User userByCode = jdbc.queryForObject(SELECT_USER_BY_USER_CODE_QUERY, Map.of("code", code), new UserRowMapper());
+            User userByEmail = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
+            if (userByCode.getEmail().equalsIgnoreCase(userByEmail.getEmail())){
+                jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID, Map.of("id", userByEmail.getId()));
+                log.info("User by code {}", userByCode);
+                return userByCode;
+            }else {
+                throw new ApiException("Code is invalid. Please try again.");
+            }
+        } catch (EmptyResultDataAccessException exception){
+            throw  new ApiException("Could not find record");
+        } catch (Exception exception){
+            throw  new ApiException("An error occurred. Please try again");
+        }
+    }
+
+    private Boolean isVerificationCodeExpired(String code) {
+        try {
+            return jdbc.queryForObject(SELECT_IS_CODE_EXPIRED, Map.of("code", code), Boolean.class);
+        } catch (EmptyResultDataAccessException exception){
+            throw  new ApiException("The code has expired, Please log in again");
+        } catch (Exception exception){
+            throw  new ApiException("An error occurred. Please try again");
+        }
     }
 
     private Integer getEmailCount(String email) {
