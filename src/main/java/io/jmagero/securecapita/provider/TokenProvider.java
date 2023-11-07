@@ -7,6 +7,7 @@ import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import io.jmagero.securecapita.domain.UserPrincipal;
+import io.jmagero.securecapita.exception.ApiException;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,7 +70,10 @@ public class TokenProvider {
 
     public boolean isTokenValid(String email, String token){
         JWTVerifier verifier = getJWTVerifier();
-        return StringUtils.isNotEmpty(email) && !isTokenExpired(verifier,token);
+        if(StringUtils.isNotEmpty(email) && !isTokenExpired(verifier,token))
+            return true;
+
+        throw new ApiException("Token Expired");
     }
 
     private boolean isTokenExpired(JWTVerifier verifier, String token) {
@@ -98,7 +102,7 @@ public class TokenProvider {
             Algorithm algorithm = Algorithm.HMAC512(secret);
             verifier = JWT.require(algorithm).withIssuer(GET_ARRAYS_LLC).build();
         }catch (JWTVerificationException exception){
-            throw  new JWTVerificationException(" Token cannot be verified");
+            throw  new JWTVerificationException("Token cannot be verified");
         }
         return verifier;
     }

@@ -2,7 +2,6 @@ package io.jmagero.securecapita.resource;
 
 import io.jmagero.securecapita.domain.HttpResponse;
 import io.jmagero.securecapita.domain.LoginForm;
-import io.jmagero.securecapita.domain.User;
 import io.jmagero.securecapita.domain.UserPrincipal;
 import io.jmagero.securecapita.dto.UserDTO;
 import io.jmagero.securecapita.provider.TokenProvider;

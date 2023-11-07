@@ -3,7 +3,6 @@ package io.jmagero.securecapita.service;
 import io.jmagero.securecapita.domain.Role;
 import io.jmagero.securecapita.domain.User;
 import io.jmagero.securecapita.dto.UserDTO;
-import io.jmagero.securecapita.dtomapper.UserDTOMapper;
 import io.jmagero.securecapita.repository.RoleRepository;
 import io.jmagero.securecapita.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

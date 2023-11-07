@@ -1,5 +1,7 @@
 package io.jmagero.securecapita.filter;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import io.jmagero.securecapita.exception.ApiException;
 import io.jmagero.securecapita.provider.TokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static io.jmagero.securecapita.utils.ExceptionUtils.processError;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.apache.logging.log4j.util.Strings.EMPTY;
@@ -37,15 +40,18 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         try{
             Map<String, String> values = getRequestValues(request);
             String token = getToken(request);
-            if (tokenProvider.isTokenValid(values.get(EMAIL_KEY), token)){
+            boolean isTokenValid = tokenProvider.isTokenValid(values.get(EMAIL_KEY),token);
+            if (isTokenValid){
                 List<GrantedAuthority> authorities = tokenProvider.getAuthorities(values.get(TOKEN_KEY));
                 Authentication authentication = tokenProvider.getAuthentication(values.get(EMAIL_KEY), authorities, request);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else { SecurityContextHolder.clearContext();}
+            } else {
+                SecurityContextHolder.clearContext();
+            }
             filter.doFilter(request,response);
-        } catch (Exception exception) {
+        } catch (RuntimeException exception){
             log.error(exception.getMessage());
-//            processError(request,response,exception);
+            processError(request,response,exception);
         }
 
     }
