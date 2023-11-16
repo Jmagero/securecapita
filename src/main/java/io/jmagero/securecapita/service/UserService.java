@@ -15,4 +15,10 @@ public interface UserService {
     User getUser(String email);
 
     UserDTO verifyCode(String email, String code);
+
+    void resetPassword(String email);
+
+    UserDTO resetPasswordKey(String key);
+
+    void renewPassword(String key, String password, String confirmPassword);
 }

@@ -24,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-    private final String[] PUBLIC_URLS = { "/users/login/**", "/users/verify/code/**" };
+    private final String[] PUBLIC_URLS = { "/users/login/**", "/users/verify/code/**","/users/verify/password/**", "/users/resetpassword/**", "/users/reset/password/**" };
     private final BCryptPasswordEncoder encoder;
     private final CustomerAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;

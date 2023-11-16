@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Map;
 
 import static java.time.LocalDateTime.now;
+import static java.util.Map.of;
 
 @RestController
 @RequestMapping("/users")
@@ -45,13 +45,51 @@ public class UserResource {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(Map.of("user",user, "access_token", tokenProvider.createAccessToken(getUserPrincipal(user)),
+                        .data(of("user",user, "access_token", tokenProvider.createAccessToken(getUserPrincipal(user)),
                                 "refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(user))))
                         .message("Login Success")
                         .status(HttpStatus.OK)
                         .statusCode(HttpStatus.OK.value())
                         .build());
     }
+    //START -To reset password when user is not logged in
+    @GetMapping("/resetpassword/{email}")
+    public ResponseEntity<HttpResponse>  resetPassword(@PathVariable("email") String email){
+        userService.resetPassword(email);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .message("Password verification link sent")
+                        .status(HttpStatus.OK)
+                        .statusCode(HttpStatus.OK.value())
+                        .build());
+    }
+
+    @GetMapping("/verify/password/{key}")
+    public ResponseEntity<HttpResponse>  verifyPassword(@PathVariable("key") String key){
+        UserDTO user = userService.resetPasswordKey(key);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(of("user", user ))
+                        .message("Please enter new password")
+                        .status(HttpStatus.OK)
+                        .statusCode(HttpStatus.OK.value())
+                        .build());
+    }
+    @PostMapping("/reset/password/{key}/{password}/{confirmPassword}")
+    public ResponseEntity<HttpResponse>  updateUserPassword(@PathVariable("key") String key, @PathVariable("password") String password, @PathVariable("confirmPassword") String confirmPassword){
+        userService.renewPassword(key,password,confirmPassword);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .message("Password has been reset. Thank you")
+                        .status(HttpStatus.OK)
+                        .statusCode(HttpStatus.OK.value())
+                        .build());
+    }
+
+    //END -To reset password when user is not logged in
 
     @GetMapping("/profile")
     public ResponseEntity<HttpResponse>  profile(Authentication authentication){
@@ -59,7 +97,7 @@ public class UserResource {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(Map.of("user",user ))
+                        .data(of("user",user ))
                         .message("Profile Retrieved")
                         .status(HttpStatus.OK)
                         .statusCode(HttpStatus.OK.value())
@@ -74,7 +112,7 @@ public class UserResource {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(Map.of("user",user, "access_token", tokenProvider.createAccessToken(getUserPrincipal(user)),
+                        .data(of("user",user, "access_token", tokenProvider.createAccessToken(getUserPrincipal(user)),
                                 "refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(user))))
                         .message("Login Success")
                         .status(HttpStatus.OK)
@@ -91,7 +129,7 @@ public class UserResource {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(Map.of("user",userDTO))
+                        .data(of("user",userDTO))
                         .message("Verification Code Sent")
                         .status(HttpStatus.OK)
                         .statusCode(HttpStatus.OK.value())
